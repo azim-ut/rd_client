@@ -25,20 +25,44 @@ public class Screen {
         return res;
     }
 
-    public Integer getAreaSum(int posX, int posY, int width, int height){
+    public Integer getAreaSum(int posX, int posY, int width, int height) {
         int res = 0;
         int pos = 0;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                pos++;
-                int RGBA = bufferedImage.getRGB(posX + x, posY + y);
-                int alpha = (RGBA >> 24) & 255;
-                int red = (RGBA >> 16) & 255;
-                int green = (RGBA >> 8) & 255;
-                int blue = RGBA & 255;
-                res += pos + alpha + red + green + blue;
+        int nextX = 0;
+        int nextY = 0;
+        try {
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    pos++;
+                    nextX = posX + x;
+                    nextY = posY + y;
+
+                    try {
+                        int RGBA = bufferedImage.getRGB(nextX, nextY);
+                        res += pos + RGBA;
+                    } catch (ArrayIndexOutOfBoundsException exception) {
+                        res += pos;
+                        //skip not found color
+                    }
+                }
             }
+        } catch (ArrayIndexOutOfBoundsException exception) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(exception.getMessage());
+            stringBuilder.append(" Position: ");
+            stringBuilder.append(pos);
+            stringBuilder.append(" Coordinates: ");
+            stringBuilder.append(nextX);
+            stringBuilder.append(", ");
+            stringBuilder.append(nextY);
+            stringBuilder.append(" width: ");
+            stringBuilder.append(width);
+            stringBuilder.append(" height: ");
+            stringBuilder.append(height);
+            System.out.println(stringBuilder.toString());
+            return -1;
         }
+//        System.out.println("getAreaSum[" + pos + "]: " +  res);
         return res;
     }
 }

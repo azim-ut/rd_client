@@ -1,11 +1,11 @@
 package app;
 
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import app.runnable.UploadFileTask;
 import app.service.ScreenService;
 import app.service.bean.Screen;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -70,12 +70,6 @@ public class CastScreenApp {
                 }
             }
             System.out.println("-----------------------");
-
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 //        threadPoolExecutor.shutdown();
     }
@@ -87,14 +81,18 @@ public class CastScreenApp {
                 .width(sideSize)
                 .height(sideSize)
                 .build();
-        int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
-        int sampleBlockSize = samples.get(sampleIndex);
         String filePath = "screen/temp" + sampleIndex + ".jpg";
+        int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
+        if (newBlockSize < 0) {
+            Files.deleteIfExists(Paths.get(filePath));
+            return 0;
+        }
+        int sampleBlockSize = samples.get(sampleIndex);
 
         if (newBlockSize != sampleBlockSize) {
             File file = new File(filePath);
             ImageIO.write(newCrop, "jpg", file);
-//                        sendScreen(file);
+//            sendScreen(file);
             return 1;
         } else {
             Files.deleteIfExists(Paths.get(filePath));
