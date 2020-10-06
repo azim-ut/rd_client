@@ -1,8 +1,11 @@
 package app;
 
-import com.google.common.collect.Lists;
 import app.bean.ConnectionState;
 import app.runnable.HostFetcher;
+import com.google.common.collect.Lists;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -15,6 +18,8 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Unit test for simple App.
@@ -41,7 +46,7 @@ public class ConnectionTest {
         }
         while (socket == null) {
             try {
-                socket = new Socket("localhost", connectionState.getPath().getPort());
+                socket = new Socket(Constants.IP, connectionState.getPath().getPort());
                 System.out.println("Connected");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -83,5 +88,17 @@ public class ConnectionTest {
                 }
             }
         }
+    }
+
+    @Ignore
+    @Test
+    public void testHttpConnection() {
+        PoolingHttpClientConnectionManager poolingConnManager = new PoolingHttpClientConnectionManager();
+        poolingConnManager.setMaxTotal(5);
+        CloseableHttpClient client = HttpClients.custom().setConnectionManager(poolingConnManager).build();
+        ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+        String url = "http://it-prom.com/upload.php";
+
+//        threadPoolExecutor.execute(new UploadFileTask(client, url, file));
     }
 }

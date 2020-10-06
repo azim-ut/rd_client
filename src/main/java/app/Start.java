@@ -7,7 +7,7 @@ public class Start {
 
     public static void main(String[] args) {
         String ip = JOptionPane.showInputDialog("Please enter server IP");
-        new Start().initilize(ip, Integer.parseInt(Constants.port));
+        new Start().initilize(ip, Constants.PORT);
 
     }
 

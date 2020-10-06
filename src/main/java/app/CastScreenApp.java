@@ -1,15 +1,15 @@
 package app;
 
-import app.runnable.UploadFileTask;
+import app.bean.ScreenPacket;
+import app.runnable.TcpImageSocket;
 import app.service.ScreenService;
 import app.service.bean.Screen;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,21 +23,22 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Hello world!
  */
+@Slf4j
 @Component
 public class CastScreenApp {
 
+    private final Queue<ScreenPacket> screens = new LinkedList<>();
+
     ScreenService screenService = new ScreenService();
 
-    CloseableHttpClient client;
     ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     private Screen bgScreen = null;
     private List<Integer> samples = null;
-    private Queue<String> screens = new LinkedList<>();
 
     public void start(String[] args) {
-        PoolingHttpClientConnectionManager poolingConnManager = new PoolingHttpClientConnectionManager();
-        poolingConnManager.setMaxTotal(5);
-        client = HttpClients.custom().setConnectionManager(poolingConnManager).build();
+        new Thread(new TcpImageSocket(Constants.CODE, Constants.IP, Constants.PORT)
+                .withQueue(screens)
+        ).start();
 
         bgScreen = screenService.get();
         int side = screenService.getMaxEnabledSquare(bgScreen);
@@ -52,6 +53,10 @@ public class CastScreenApp {
             for (int j = 0; j < bgScreen.getHeight(); j = j + side) {
                 for (int i = 0; i < bgScreen.getWidth(); i = i + side) {
                     try {
+                        if (screens.size() >= 10) {
+                            Thread.sleep(500);
+                            continue;
+                        }
                         changes += processArea(i, j, sampleIndex, side);
 
                         if (changes > samples.size() / 2) {
@@ -60,16 +65,12 @@ public class CastScreenApp {
                             samples = bgScreen.croppedToSet(side, side);
                             return;
                         }
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
+                    } catch (InterruptedException | IOException e) {
+                        log.error(e.getMessage(), e);
                     }
                     sampleIndex++;
                 }
-                if (changes > samples.size() / 2) {
-                    break;
-                }
             }
-            System.out.println("-----------------------");
         }
 //        threadPoolExecutor.shutdown();
     }
@@ -81,7 +82,8 @@ public class CastScreenApp {
                 .width(sideSize)
                 .height(sideSize)
                 .build();
-        String filePath = "screen/temp" + sampleIndex + ".jpg";
+        String fileName = sampleIndex + ".jpg";
+        String filePath = "screen/temp" + fileName;
         int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
         if (newBlockSize < 0) {
             Files.deleteIfExists(Paths.get(filePath));
@@ -92,7 +94,7 @@ public class CastScreenApp {
         if (newBlockSize != sampleBlockSize) {
             File file = new File(filePath);
             ImageIO.write(newCrop, "jpg", file);
-//            sendScreen(file);
+            appendToScreens(fileName, "TEST", newCrop);
             return 1;
         } else {
             Files.deleteIfExists(Paths.get(filePath));
@@ -100,17 +102,40 @@ public class CastScreenApp {
         return 0;
     }
 
-    public void sendScreen(File file) {
-        String url = "http://it-prom.com/upload.php";
-
-        threadPoolExecutor.execute(new UploadFileTask(client, url, file));
-    }
-
     private void saveBg(Screen screen) {
         try {
-            ImageIO.write(screen.getBufferedImage(), "jpg", new File("screen/bg.jpg"));
+            String fileName = "bg.jpg";
+            appendToScreens(fileName, "TEST", screen.getBufferedImage());
+            ImageIO.write(screen.getBufferedImage(), "jpg", new File("screen/" + fileName));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
+    }
+
+    private void appendToScreens(String fileName, String code, BufferedImage buf) {
+        byte[] bytes = getBytes(buf);
+        screens.add(new ScreenPacket(fileName, code, bytes));
+        System.out.println("Screens updated: " + screens.size());
+    }
+
+    public byte[] getBytes(BufferedImage bufferedImage) {
+        ByteArrayOutputStream os = null;
+        try {
+            os = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "jpeg", os);
+            os.flush();
+            return os.toByteArray();
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+        return new byte[0];
     }
 }
