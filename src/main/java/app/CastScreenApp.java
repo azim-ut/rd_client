@@ -1,6 +1,6 @@
 package app;
 
-import app.bean.ScreenPacket;
+import app.bean.ActionPacket;
 import app.runnable.TcpImageSocket;
 import app.service.ScreenService;
 import app.service.bean.Screen;
@@ -27,7 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Component
 public class CastScreenApp {
 
-    private final Queue<ScreenPacket> screens = new LinkedList<>();
+    private final Queue<ActionPacket> pipe = new LinkedList<>();
 
     ScreenService screenService = new ScreenService();
 
@@ -37,7 +37,7 @@ public class CastScreenApp {
 
     public void start(String[] args) {
         new Thread(new TcpImageSocket(Constants.CODE, Constants.IP, Constants.PORT)
-                .withQueue(screens)
+                .withQueue(pipe)
         ).start();
 
         bgScreen = screenService.get();
@@ -53,7 +53,7 @@ public class CastScreenApp {
             for (int j = 0; j < bgScreen.getHeight(); j = j + side) {
                 for (int i = 0; i < bgScreen.getWidth(); i = i + side) {
                     try {
-                        if (screens.size() >= 10) {
+                        if (pipe.size() >= 10) {
                             Thread.sleep(500);
                             continue;
                         }
@@ -94,10 +94,20 @@ public class CastScreenApp {
         if (newBlockSize != sampleBlockSize) {
             File file = new File(filePath);
             ImageIO.write(newCrop, "jpg", file);
-            appendToScreens(fileName, "TEST", newCrop);
+            toPipe(ActionPacket.builder()
+                    .createFile(fileName)
+                    .code("TEST")
+                    .bytes(getBytes(newCrop))
+                    .build()
+            );
             return 1;
         } else {
             Files.deleteIfExists(Paths.get(filePath));
+            toPipe(ActionPacket.builder()
+                    .removeFile(filePath)
+                    .code("TEST")
+                    .build()
+            );
         }
         return 0;
     }
@@ -105,17 +115,21 @@ public class CastScreenApp {
     private void saveBg(Screen screen) {
         try {
             String fileName = "bg.jpg";
-            appendToScreens(fileName, "TEST", screen.getBufferedImage());
+            toPipe(ActionPacket.builder()
+                    .createFile(fileName)
+                    .code("TEST")
+                    .bytes(getBytes(screen.getBufferedImage()))
+                    .build()
+            );
             ImageIO.write(screen.getBufferedImage(), "jpg", new File("screen/" + fileName));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
     }
 
-    private void appendToScreens(String fileName, String code, BufferedImage buf) {
-        byte[] bytes = getBytes(buf);
-        screens.add(new ScreenPacket(fileName, code, bytes));
-        System.out.println("Screens updated: " + screens.size());
+    private void toPipe(ActionPacket action) {
+        pipe.add(action);
+        System.out.println("Pipe updated: " + pipe.size());
     }
 
     public byte[] getBytes(BufferedImage bufferedImage) {
