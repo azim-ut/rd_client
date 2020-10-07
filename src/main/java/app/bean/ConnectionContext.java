@@ -32,4 +32,14 @@ public class ConnectionContext {
         this.port = 0;
         connected = false;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectionContext{" +
+                "code='" + code + '\'' +
+                ", ip='" + ip + '\'' +
+                ", port=" + port +
+                ", connected=" + connected +
+                '}';
+    }
 }

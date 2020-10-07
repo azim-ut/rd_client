@@ -10,7 +10,7 @@ public class Application {
     @CommandLine.Option(names = {"-m", "--mode"}, defaultValue = "view", description = "'cast': cast screen, 'view': view script")
     private static String mode = "cast";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         if (mode.equals("cast")) {
             ApplicationContext context = new AnnotationConfigApplicationContext(CastScreenApp.class);
             CastScreenApp serverApp = context.getBean(CastScreenApp.class);

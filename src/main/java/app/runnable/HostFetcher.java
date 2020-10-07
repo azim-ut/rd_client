@@ -3,12 +3,14 @@ package app.runnable;
 import com.google.gson.Gson;
 import app.bean.ConnectionContextResponse;
 import app.bean.ConnectionContext;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+@Slf4j
 public class HostFetcher implements Runnable {
     private ConnectionContext ctx;
     private String url = "https://it-prom.com/charts/rest/ip/code";
@@ -43,5 +45,6 @@ public class HostFetcher implements Runnable {
         ConnectionContextResponse response = gson.fromJson(stringBuilder.toString(), ConnectionContextResponse.class);
         ctx.setIp(response.getIp());
         ctx.setPort(response.getPort());
+//        log.info("Update connection info: " + ctx.toString());
     }
 }
