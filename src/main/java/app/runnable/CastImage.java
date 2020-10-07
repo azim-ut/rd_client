@@ -1,14 +1,12 @@
 package app.runnable;
 
+import app.bean.ConnectionContext;
+
 public abstract class CastImage implements Runnable {
 
-    protected String code = null;
-    protected String ip = null;
-    protected  int port = 0;
+    protected ConnectionContext ctx;
 
-    public CastImage(String code, String ip, int port) {
-        this.code = code;
-        this.ip = ip;
-        this.port = port;
+    public CastImage(ConnectionContext ctx) {
+        this.ctx = ctx;
     }
 }

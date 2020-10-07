@@ -1,6 +1,6 @@
 package app;
 
-import app.bean.ConnectionState;
+import app.bean.ConnectionContext;
 import app.runnable.HostFetcher;
 import com.google.common.collect.Lists;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -25,28 +25,28 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Unit test for simple App.
  */
 public class ConnectionTest {
-    private ConnectionState connectionState;
+    private ConnectionContext ctx;
     private final Queue<String> clientMessages = new LinkedList<>();
 
     @Before
     public void init() {
-        this.connectionState = new ConnectionState("TEST");
+        this.ctx = new ConnectionContext("TEST");
     }
 
     @Ignore
     @Test
     public void connectionPath() throws InterruptedException {
-        new Thread(new HostFetcher(connectionState)).start();
+        new Thread(new HostFetcher(ctx)).start();
         Socket socket = null;
 
         clientMessages.addAll(Lists.newArrayList("one", "two", "three", "close"));
 
-        while (connectionState.getPath() == null || connectionState.getPath().getIp() == null) {
+        while (ctx.getIp() == null || ctx.getPort() == 0) {
             Thread.sleep(500);
         }
         while (socket == null) {
             try {
-                socket = new Socket(Constants.IP, connectionState.getPath().getPort());
+                socket = new Socket(Constants.IP, ctx.getPort());
                 System.out.println("Connected");
             } catch (IOException ioException) {
                 ioException.printStackTrace();

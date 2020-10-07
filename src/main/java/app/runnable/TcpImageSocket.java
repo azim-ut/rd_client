@@ -1,6 +1,7 @@
 package app.runnable;
 
 import app.bean.ActionPacket;
+import app.bean.ConnectionContext;
 import app.bean.ResponsePacket;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,8 +16,8 @@ import java.util.Queue;
 public class TcpImageSocket extends CastImage {
     private Queue<ActionPacket> screens = null;
 
-    public TcpImageSocket(String code, String ip, int port) {
-        super(code, ip, port);
+    public TcpImageSocket(ConnectionContext ctx) {
+        super(ctx);
     }
 
 
@@ -28,7 +29,16 @@ public class TcpImageSocket extends CastImage {
     @Override
     public void run() {
         while (true) {
-            try (Socket socket = new Socket(ip, port)) {
+            if (ctx == null || !ctx.enableToConnect()) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    log.error("Waiting to get remote IP and port" + e.getMessage(), e);
+                }
+                continue;
+            }
+
+            try (Socket socket = new Socket(ctx.getIp(), ctx.getPort())) {
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
 
@@ -40,16 +50,14 @@ public class TcpImageSocket extends CastImage {
                         outputStream.writeObject(packet);
                         outputStream.flush();
                         try {
-                            while(true){
+                            while (true) {
                                 if (socket.getInputStream().available() != 0) {
                                     ResponsePacket serverAnswer = (ResponsePacket) inputStream.readObject();
                                     log.info("Answer: " + serverAnswer.toString());
                                     break;
                                 }
                             }
-                        } catch (ClassNotFoundException e) {
-                            log.error(e.getMessage(), e);
-                        } catch (IOException e) {
+                        } catch (ClassNotFoundException | IOException e) {
                             log.error(e.getMessage(), e);
                         }
                         screens.poll();
@@ -59,6 +67,9 @@ public class TcpImageSocket extends CastImage {
                 log.error(e.getMessage(), e);
             } finally {
                 log.info("Need to reconnect to socket.");
+                if(ctx != null){
+                    ctx.reset();
+                }
             }
         }
 //        log.warn("FINISHED");

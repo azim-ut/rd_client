@@ -1,6 +1,8 @@
 package app;
 
 import app.bean.ActionPacket;
+import app.bean.ConnectionContext;
+import app.runnable.HostFetcher;
 import app.runnable.TcpImageSocket;
 import app.service.ScreenService;
 import app.service.bean.Screen;
@@ -34,11 +36,13 @@ public class CastScreenApp {
     ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
     private Screen bgScreen = null;
     private List<Integer> samples = null;
+    private ConnectionContext ctx = null;
 
     public void start(String[] args) {
-        new Thread(new TcpImageSocket(Constants.CODE, Constants.IP, Constants.PORT)
-                .withQueue(pipe)
-        ).start();
+        ctx = new ConnectionContext("TEST");
+
+        new Thread(new HostFetcher(ctx)).start();
+        new Thread(new TcpImageSocket(ctx).withQueue(pipe)).start();
 
         bgScreen = screenService.get();
         int side = screenService.getMaxEnabledSquare(bgScreen);
