@@ -3,7 +3,6 @@ package app.bean;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -18,6 +17,8 @@ public class ActionPacket implements Serializable {
 
     private final String code;
 
+    private final int position;
+
     private final byte[] bytes;
 
     @Override
@@ -26,6 +27,7 @@ public class ActionPacket implements Serializable {
                 "createFile='" + createFile + '\'' +
                 ", removeFile='" + removeFile + '\'' +
                 ", code='" + code + '\'' +
+                ", position=" + position +
                 '}';
     }
 }

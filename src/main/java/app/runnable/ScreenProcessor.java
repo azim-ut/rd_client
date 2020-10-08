@@ -1,6 +1,7 @@
 package app.runnable;
 
 import app.bean.ActionPacket;
+import app.bean.ConnectionContext;
 import app.service.ScreenService;
 import app.service.bean.Screen;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,9 @@ import java.util.Queue;
 
 @Slf4j
 public class ScreenProcessor implements Runnable {
-    ScreenService screenService = new ScreenService();
+
+    private ConnectionContext ctx;
+    private ScreenService screenService = new ScreenService();
     private Queue<ActionPacket> pipe;
     private List<Integer> samples = null;
 
@@ -27,38 +30,44 @@ public class ScreenProcessor implements Runnable {
 
     // standard constructors
     public void run() {
-        Screen bgScreen = screenService.get();
-        int side = screenService.getMaxEnabledSquare(bgScreen);
+        try {
+            Screen bgScreen = screenService.get();
+            int side = screenService.getMaxEnabledSquare(bgScreen);
 
-        saveBg(bgScreen);
-        samples = bgScreen.croppedToSet(side, side);
+            saveBg(bgScreen);
+            samples = bgScreen.croppedToSet(side, side);
 
-        while (true) {
-            int sampleIndex = 0;
-            int changes = 0;
+            while (true) {
+                int sampleIndex = 0;
+                int changes = 0;
 
-            for (int j = 0; j < bgScreen.getHeight(); j = j + side) {
-                for (int i = 0; i < bgScreen.getWidth(); i = i + side) {
-                    try {
-                        if (pipe.size() >= 10) {
-                            Thread.sleep(500);
-                            continue;
+                for (int j = 0; j < bgScreen.getHeight(); j = j + side) {
+                    for (int i = 0; i < bgScreen.getWidth(); i = i + side) {
+                        try {
+                            if (pipe.size() >= 50) {
+                                continue;
+                            }
+                            changes += processArea(i, j, sampleIndex, side);
+
+                            if (changes > samples.size() / 2) {
+                                bgScreen = screenService.get();
+                                saveBg(bgScreen);
+                                samples = bgScreen.croppedToSet(side, side);
+                                //TODO start check from the begin, because of bg updated
+                                continue;
+                            }
+                        } catch (IOException e) {
+                            log.error(e.getMessage(), e);
                         }
-                        changes += processArea(i, j, sampleIndex, side);
-
-                        if (changes > samples.size() / 2) {
-                            bgScreen = screenService.get();
-                            saveBg(bgScreen);
-                            samples = bgScreen.croppedToSet(side, side);
-                            return;
-                        }
-                    } catch (InterruptedException | IOException e) {
-                        log.error(e.getMessage(), e);
+                        sampleIndex++;
                     }
-                    sampleIndex++;
                 }
+                log.debug("Screen processed");
             }
-            log.debug("Screen processed");
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            log.info("Screen Processor is OFF");
         }
     }
 
@@ -69,8 +78,8 @@ public class ScreenProcessor implements Runnable {
                 .width(sideSize)
                 .height(sideSize)
                 .build();
-        String fileName = sampleIndex + ".jpg";
-        String filePath = "screen/temp" + fileName;
+        String fileName = "temp" + sampleIndex + ".jpg";
+        String filePath = "screen/" + fileName;
         int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
         if (newBlockSize < 0) {
             Files.deleteIfExists(Paths.get(filePath));
@@ -80,21 +89,23 @@ public class ScreenProcessor implements Runnable {
 
         if (newBlockSize != sampleBlockSize) {
             File file = new File(filePath);
-            ImageIO.write(newCrop, "jpg", file);
+//            ImageIO.write(newCrop, "jpg", file);
             toPipe(ActionPacket.builder()
                     .createFile(fileName)
+                    .position(sampleIndex)
                     .code("TEST")
                     .bytes(getBytes(newCrop))
                     .build()
             );
             return 1;
         } else {
-            Files.deleteIfExists(Paths.get(filePath));
-            toPipe(ActionPacket.builder()
-                    .removeFile(filePath)
-                    .code("TEST")
-                    .build()
-            );
+//            Files.deleteIfExists(Paths.get(filePath));
+//            toPipe(ActionPacket.builder()
+//                    .removeFile(filePath)
+//                    .position(sampleIndex)
+//                    .code("TEST")
+//                    .build()
+//            );
         }
         return 0;
     }
@@ -104,6 +115,7 @@ public class ScreenProcessor implements Runnable {
             String fileName = "bg.jpg";
             toPipe(ActionPacket.builder()
                     .createFile(fileName)
+                    .position(0)
                     .code("TEST")
                     .bytes(getBytes(screen.getBufferedImage()))
                     .build()
