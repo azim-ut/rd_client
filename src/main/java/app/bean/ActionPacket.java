@@ -17,6 +17,8 @@ public class ActionPacket implements Serializable {
 
     private final String code;
 
+    private final long epoch;
+
     private final int position;
 
     private final byte[] bytes;
@@ -26,6 +28,7 @@ public class ActionPacket implements Serializable {
         return "ActionPacket{" +
                 "createFile='" + createFile + '\'' +
                 ", removeFile='" + removeFile + '\'' +
+                ", epoch='" + epoch + '\'' +
                 ", code='" + code + '\'' +
                 ", position=" + position +
                 '}';

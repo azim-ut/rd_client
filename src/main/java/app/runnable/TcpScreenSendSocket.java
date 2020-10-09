@@ -15,14 +15,17 @@ import java.util.Queue;
 @Slf4j
 public class TcpScreenSendSocket extends CastImage {
 
+
     public TcpScreenSendSocket(ConnectionContext ctx, Queue<ActionPacket> screens) {
         super(ctx, screens);
     }
 
     @Override
     public void run() {
+
+        long socketLastDateline = 0;
+
         while (true) {
-            log.info("4");
             if (ctx == null || !ctx.enableToConnect()) {
                 try {
                     Thread.sleep(200);
@@ -32,57 +35,53 @@ public class TcpScreenSendSocket extends CastImage {
                 continue;
             }
 
-            try (Socket socket = new Socket(ctx.getIp(), ctx.getPort())) {
-                log.info("3");
+            socketLastDateline = ctx.getDateline();
 
+            try (Socket socket = new Socket(ctx.getIp(), ctx.getPort())) {
+                ctx.setConnected(true);
                 log.info("Connection to the socket: " + ctx.toString());
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream inputStream = null;
 
+                int lastQueueSize = -1;
+
                 while (true) {
-                    log.info("2");
+                    if (ctx.getDateline() != socketLastDateline) {
+                        log.info("Code: {}. New socket detected. My dateline: {}, socket dateline: {}", ctx.getCode(), socketLastDateline, ctx.getDateline());
+                        break;
+                    }
                     ActionPacket packet = screens.peek();
                     if (packet != null) {
                         log.info("Send 1 of " + screens.size() + " Image into. " + packet.toString());
                         outputStream.writeObject(packet);
                         outputStream.flush();
-                        try {
-                            int loop = 100;
-                            boolean answered = false;
-                            while (loop-- > 0 && !answered) {
-                                if (socket.getInputStream().available() != 0) {
-                                    if (inputStream == null) {
-                                        inputStream = new ObjectInputStream(socket.getInputStream());
-                                    }
-                                    ResponsePacket serverAnswer = (ResponsePacket) inputStream.readObject();
-                                    log.info("Answer: " + serverAnswer.toString());
-                                    answered = true;
-                                } else {
-//                                    log.debug("Waiting for answer: " + loop);
-                                    try {
-                                        Thread.sleep(100);
-                                    } catch (InterruptedException e) {
-                                        log.error("InterruptedException while waiting to get answer" + e.getMessage(), e);
-                                    }
-                                }
-                            }
-                        } catch (ClassNotFoundException | IOException e) {
-                            log.error(e.getMessage(), e);
-                        }
+//                        try {
+//                            if (socket.getInputStream().available() != 0) {
+//                                if (inputStream == null) {
+//                                    inputStream = new ObjectInputStream(socket.getInputStream());
+//                                }
+//                                ResponsePacket serverAnswer = (ResponsePacket) inputStream.readObject();
+//                                log.info("Answer: " + serverAnswer.toString());
+//                            }
+//                        } catch (ClassNotFoundException | IOException e) {
+//                            log.error(e.getMessage(), e);
+//                        }
                         screens.poll();
-                        log.info("1");
+                        lastQueueSize = screens.size();
                     } else {
-                        log.info("Queue is off?");
+                        if (lastQueueSize != 0) {
+                            log.info("Queue is off?");
+                            lastQueueSize = 0;
+                        }
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        log.info("Queue is off?");
                     }
                 }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+            } catch (IOException e) {
+                log.error("Socket connection Exception: {}", e.getMessage());
             } finally {
                 log.info("Need to reconnect to socket.");
                 if (ctx != null) {

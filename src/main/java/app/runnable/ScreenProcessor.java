@@ -11,8 +11,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Queue;
 
@@ -20,16 +18,19 @@ import java.util.Queue;
 public class ScreenProcessor implements Runnable {
 
     private ConnectionContext ctx;
-    private ScreenService screenService = new ScreenService();
-    private Queue<ActionPacket> pipe;
+    private final ScreenService screenService = new ScreenService();
+    private final Queue<ActionPacket> pipe;
     private List<Integer> samples = null;
 
-    public ScreenProcessor(Queue<ActionPacket> pipe) {
+    public ScreenProcessor(ConnectionContext ctx, Queue<ActionPacket> pipe) {
+        this.ctx = ctx;
         this.pipe = pipe;
     }
 
     // standard constructors
     public void run() {
+
+        long epoch = 0;
         try {
             Screen bgScreen = screenService.get();
             int side = screenService.getMaxEnabledSquare(bgScreen);
@@ -38,40 +39,39 @@ public class ScreenProcessor implements Runnable {
             samples = bgScreen.croppedToSet(side, side);
 
             while (true) {
+                if (!ctx.getConnected()) {
+                    continue;
+                }
                 int sampleIndex = 0;
                 int changes = 0;
 
                 for (int j = 0; j < bgScreen.getHeight(); j = j + side) {
                     for (int i = 0; i < bgScreen.getWidth(); i = i + side) {
-                        try {
-                            if (pipe.size() >= 50) {
-                                continue;
-                            }
-                            changes += processArea(i, j, sampleIndex, side);
+                        if (pipe.size() >= 50) {
+                            continue;
+                        }
+                        changes += processArea(epoch, i, j, sampleIndex, side);
 
-                            if (changes > samples.size() / 2) {
-                                bgScreen = screenService.get();
-                                saveBg(bgScreen);
-                                samples = bgScreen.croppedToSet(side, side);
-                                //TODO start check from the begin, because of bg updated
-                                continue;
-                            }
-                        } catch (IOException e) {
-                            log.error(e.getMessage(), e);
+                        if (changes > samples.size() / 2) {
+                            bgScreen = screenService.get();
+                            saveBg(bgScreen);
+                            samples = bgScreen.croppedToSet(side, side);
+                            //TODO start check from the begin, because of bg updated
+                            continue;
                         }
                         sampleIndex++;
                     }
                 }
-                log.debug("Screen processed");
+                epoch++;
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         } finally {
-            log.info("Screen Processor is OFF");
+            log.info("Screen Processor is OFF on epoch {}", epoch);
         }
     }
 
-    private int processArea(int i, int j, int sampleIndex, int sideSize) throws IOException {
+    private int processArea(long epoch, int i, int j, int sampleIndex, int sideSize) {
         BufferedImage newCrop = screenService.get().getBufferedImage().getSubimage(i, j, sideSize, sideSize);
         Screen row = Screen.builder()
                 .bufferedImage(newCrop)
@@ -79,18 +79,15 @@ public class ScreenProcessor implements Runnable {
                 .height(sideSize)
                 .build();
         String fileName = "temp" + sampleIndex + ".jpg";
-        String filePath = "screen/" + fileName;
         int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
         if (newBlockSize < 0) {
-            Files.deleteIfExists(Paths.get(filePath));
             return 0;
         }
         int sampleBlockSize = samples.get(sampleIndex);
 
         if (newBlockSize != sampleBlockSize) {
-            File file = new File(filePath);
-//            ImageIO.write(newCrop, "jpg", file);
             toPipe(ActionPacket.builder()
+                    .epoch(epoch)
                     .createFile(fileName)
                     .position(sampleIndex)
                     .code("TEST")
@@ -98,14 +95,6 @@ public class ScreenProcessor implements Runnable {
                     .build()
             );
             return 1;
-        } else {
-//            Files.deleteIfExists(Paths.get(filePath));
-//            toPipe(ActionPacket.builder()
-//                    .removeFile(filePath)
-//                    .position(sampleIndex)
-//                    .code("TEST")
-//                    .build()
-//            );
         }
         return 0;
     }
@@ -121,8 +110,8 @@ public class ScreenProcessor implements Runnable {
                     .build()
             );
             ImageIO.write(screen.getBufferedImage(), "jpg", new File("screen/" + fileName));
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+        } catch (IOException e) {
+            log.error("SaveBg Exception " + e.getMessage(), e);
         }
     }
 

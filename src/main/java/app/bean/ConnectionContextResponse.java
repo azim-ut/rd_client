@@ -18,11 +18,16 @@ public class ConnectionContextResponse {
         return data.port;
     }
 
+    public long getDateline() {
+        return data.dt;
+    }
+
     @Getter
     static class ConnectionPath {
         private String code;
         private String ip;
         private int port;
+        private long dt;
     }
 
 }

@@ -26,7 +26,7 @@ public class CastScreenApp {
 
         Thread hostUpdateThread = new Thread(new HostFetcher(ctx), "HostUpdateThread");
         Thread senderThread = new Thread(new TcpScreenSendSocket(ctx, pipe), "SendScreenThread");
-        Thread screenThread = new Thread(new ScreenProcessor(pipe), "ScreenProcessThread");
+        Thread screenThread = new Thread(new ScreenProcessor(ctx, pipe), "ScreenProcessThread");
 
         Thread monitoringThread = new Thread(new Monitoring(ctx, hostUpdateThread, senderThread, screenThread), "Monitor");
 

@@ -45,6 +45,7 @@ public class HostFetcher implements Runnable {
         ConnectionContextResponse response = gson.fromJson(stringBuilder.toString(), ConnectionContextResponse.class);
         ctx.setIp(response.getIp());
         ctx.setPort(response.getPort());
+        ctx.setDateline(response.getDateline());
 //        log.info("Update connection info: " + ctx.toString());
     }
 }
