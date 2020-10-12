@@ -1,6 +1,6 @@
 package app.runnable;
 
-import app.bean.ActionPacket;
+import app.bean.ScreenPacket;
 import app.bean.ConnectionContext;
 import app.bean.ResponsePacket;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import java.util.Queue;
 public class TcpScreenSendSocket extends CastImage {
 
 
-    public TcpScreenSendSocket(ConnectionContext ctx, Queue<ActionPacket> screens) {
+    public TcpScreenSendSocket(ConnectionContext ctx, Queue<ScreenPacket> screens) {
         super(ctx, screens);
     }
 
@@ -50,22 +50,22 @@ public class TcpScreenSendSocket extends CastImage {
                         log.info("Code: {}. New socket detected. My dateline: {}, socket dateline: {}", ctx.getCode(), socketLastDateline, ctx.getDateline());
                         break;
                     }
-                    ActionPacket packet = screens.peek();
+                    ScreenPacket packet = screens.peek();
                     if (packet != null) {
                         log.info("Send 1 of " + screens.size() + " Image into. " + packet.toString());
                         outputStream.writeObject(packet);
                         outputStream.flush();
-//                        try {
-//                            if (socket.getInputStream().available() != 0) {
-//                                if (inputStream == null) {
-//                                    inputStream = new ObjectInputStream(socket.getInputStream());
-//                                }
-//                                ResponsePacket serverAnswer = (ResponsePacket) inputStream.readObject();
-//                                log.info("Answer: " + serverAnswer.toString());
-//                            }
-//                        } catch (ClassNotFoundException | IOException e) {
-//                            log.error(e.getMessage(), e);
-//                        }
+                        try {
+                            if (socket.getInputStream().available() != 0) {
+                                if (inputStream == null) {
+                                    inputStream = new ObjectInputStream(socket.getInputStream());
+                                }
+                                ResponsePacket serverAnswer = (ResponsePacket) inputStream.readObject();
+                                log.info("Answer: " + serverAnswer.toString());
+                            }
+                        } catch (ClassNotFoundException | IOException e) {
+                            log.error(e.getMessage(), e);
+                        }
                         screens.poll();
                         lastQueueSize = screens.size();
                     } else {

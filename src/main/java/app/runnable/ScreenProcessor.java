@@ -1,6 +1,6 @@
 package app.runnable;
 
-import app.bean.ActionPacket;
+import app.bean.ScreenPacket;
 import app.bean.ConnectionContext;
 import app.service.ScreenService;
 import app.service.bean.Screen;
@@ -19,10 +19,11 @@ public class ScreenProcessor implements Runnable {
 
     private ConnectionContext ctx;
     private final ScreenService screenService = new ScreenService();
-    private final Queue<ActionPacket> pipe;
+    private final Queue<ScreenPacket> pipe;
     private List<Integer> samples = null;
+    private Screen bgScreen;
 
-    public ScreenProcessor(ConnectionContext ctx, Queue<ActionPacket> pipe) {
+    public ScreenProcessor(ConnectionContext ctx, Queue<ScreenPacket> pipe) {
         this.ctx = ctx;
         this.pipe = pipe;
     }
@@ -32,7 +33,7 @@ public class ScreenProcessor implements Runnable {
 
         long epoch = 0;
         try {
-            Screen bgScreen = screenService.get();
+            bgScreen = screenService.get();
             int side = screenService.getMaxEnabledSquare(bgScreen);
 
             saveBg(bgScreen);
@@ -45,12 +46,12 @@ public class ScreenProcessor implements Runnable {
                 int sampleIndex = 0;
                 int changes = 0;
 
-                for (int j = 0; j < bgScreen.getHeight(); j = j + side) {
-                    for (int i = 0; i < bgScreen.getWidth(); i = i + side) {
+                for (int y = 0; y < bgScreen.getHeight(); y = y + side) {
+                    for (int x = 0; x < bgScreen.getWidth(); x = x + side) {
                         if (pipe.size() >= 50) {
                             continue;
                         }
-                        changes += processArea(epoch, i, j, sampleIndex, side);
+                        changes += processArea(epoch, x, y, sampleIndex, side);
 
                         if (changes > samples.size() / 2) {
                             bgScreen = screenService.get();
@@ -71,8 +72,8 @@ public class ScreenProcessor implements Runnable {
         }
     }
 
-    private int processArea(long epoch, int i, int j, int sampleIndex, int sideSize) {
-        BufferedImage newCrop = screenService.get().getBufferedImage().getSubimage(i, j, sideSize, sideSize);
+    private int processArea(long epoch, int x, int y, int sampleIndex, int sideSize) {
+        BufferedImage newCrop = screenService.get().getBufferedImage().getSubimage(x, y, sideSize, sideSize);
         Screen row = Screen.builder()
                 .bufferedImage(newCrop)
                 .width(sideSize)
@@ -86,10 +87,16 @@ public class ScreenProcessor implements Runnable {
         int sampleBlockSize = samples.get(sampleIndex);
 
         if (newBlockSize != sampleBlockSize) {
-            toPipe(ActionPacket.builder()
+            toPipe(ScreenPacket.builder()
                     .epoch(epoch)
                     .createFile(fileName)
                     .position(sampleIndex)
+                    .tw(bgScreen.getWidth())
+                    .th(bgScreen.getHeight())
+                    .w(row.getWidth())
+                    .h(row.getHeight())
+                    .x(x)
+                    .y(y)
                     .code("TEST")
                     .bytes(getBytes(newCrop))
                     .build()
@@ -102,9 +109,15 @@ public class ScreenProcessor implements Runnable {
     private void saveBg(Screen screen) {
         try {
             String fileName = "bg.jpg";
-            toPipe(ActionPacket.builder()
+            toPipe(ScreenPacket.builder()
                     .createFile(fileName)
                     .position(0)
+                    .tw(bgScreen.getWidth())
+                    .th(bgScreen.getHeight())
+                    .w(screen.getWidth())
+                    .h(screen.getHeight())
+                    .x(0)
+                    .y(0)
                     .code("TEST")
                     .bytes(getBytes(screen.getBufferedImage()))
                     .build()
@@ -115,7 +128,7 @@ public class ScreenProcessor implements Runnable {
         }
     }
 
-    private void toPipe(ActionPacket action) {
+    private void toPipe(ScreenPacket action) {
         pipe.add(action);
         System.out.println("Pipe updated: " + pipe.size());
     }

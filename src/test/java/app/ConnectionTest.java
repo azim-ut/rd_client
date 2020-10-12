@@ -1,6 +1,7 @@
 package app;
 
 import app.bean.ConnectionContext;
+import app.constants.HostAct;
 import app.runnable.HostFetcher;
 import com.google.common.collect.Lists;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -30,7 +31,7 @@ public class ConnectionTest {
 
     @Before
     public void init() {
-        this.ctx = new ConnectionContext("TEST");
+        this.ctx = new ConnectionContext(HostAct.SAVE, "TEST");
     }
 
     @Ignore

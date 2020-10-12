@@ -1,7 +1,8 @@
 package app;
 
-import app.bean.ActionPacket;
 import app.bean.ConnectionContext;
+import app.bean.ScreenPacket;
+import app.constants.HostAct;
 import app.runnable.HostFetcher;
 import app.runnable.Monitoring;
 import app.runnable.ScreenProcessor;
@@ -19,10 +20,10 @@ import java.util.Queue;
 @Component
 public class CastScreenApp {
 
-    private final Queue<ActionPacket> pipe = new LinkedList<>();
+    private final Queue<ScreenPacket> pipe = new LinkedList<>();
 
     public void start(String[] args) throws InterruptedException {
-        ConnectionContext ctx = new ConnectionContext("TEST");
+        ConnectionContext ctx = new ConnectionContext(HostAct.SAVE, "TEST");
 
         Thread hostUpdateThread = new Thread(new HostFetcher(ctx), "HostUpdateThread");
         Thread senderThread = new Thread(new TcpScreenSendSocket(ctx, pipe), "SendScreenThread");

@@ -1,13 +1,13 @@
 package app.runnable;
 
-import app.bean.ActionPacket;
+import app.bean.ScreenPacket;
 import app.bean.ConnectionContext;
 
 import java.util.List;
 import java.util.Queue;
 
 public class Monitoring implements Runnable{
-    private Queue<ActionPacket> pipe;
+    private Queue<ScreenPacket> pipe;
     private List<Integer> samples = null;
     private Thread hostUpdateThread;
     private Thread senderThread;
