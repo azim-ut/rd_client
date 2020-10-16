@@ -1,6 +1,6 @@
 package app.runnable;
 
-import app.constants.HostAct;
+import app.constants.Mode;
 import com.google.gson.Gson;
 import app.bean.ConnectionContextResponse;
 import app.bean.ConnectionContext;
@@ -34,7 +34,7 @@ public class HostFetcher implements Runnable {
         }
     }
 
-    private void defineCurrent(HostAct act, String code) throws IOException {
+    private void defineCurrent(Mode act, String code) throws IOException {
         URL url = new URL(this.url + "/" + act + "/" + code);
         BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
         StringBuilder stringBuilder = new StringBuilder();

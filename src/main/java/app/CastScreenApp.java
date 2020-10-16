@@ -2,7 +2,7 @@ package app;
 
 import app.bean.ConnectionContext;
 import app.bean.ScreenPacket;
-import app.constants.HostAct;
+import app.constants.Mode;
 import app.runnable.HostFetcher;
 import app.runnable.Monitoring;
 import app.runnable.ScreenProcessor;
@@ -18,12 +18,13 @@ import java.util.Queue;
  */
 @Slf4j
 @Component
-public class CastScreenApp {
+public class CastScreenApp extends BaseApp{
 
     private final Queue<ScreenPacket> pipe = new LinkedList<>();
 
     public void start(String[] args) throws InterruptedException {
-        ConnectionContext ctx = new ConnectionContext(HostAct.SAVE, "TEST");
+        init(args);
+        ConnectionContext ctx = new ConnectionContext(Mode.CAST, this.code);
 
         Thread hostUpdateThread = new Thread(new HostFetcher(ctx), "HostUpdateThread");
         Thread senderThread = new Thread(new TcpScreenSendSocket(ctx, pipe), "SendScreenThread");

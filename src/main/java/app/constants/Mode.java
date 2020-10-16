@@ -1,6 +1,6 @@
 package app.constants;
 
-public enum HostAct {
-    SAVE,
+public enum Mode {
+    CAST,
     SHOW
 }
