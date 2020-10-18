@@ -54,7 +54,7 @@ public class TcpScreenSendSocket extends CastImage {
                     if (packet != null) {
                         log.info("Send 1 of " + screens.size() + " Image into. " + packet.toString());
                         outputStream.writeObject(packet);
-//                        outputStream.flush();
+                        outputStream.flush();
                         try {
                             if (socket.getInputStream().available() != 0) {
                                 if (inputStream == null) {
