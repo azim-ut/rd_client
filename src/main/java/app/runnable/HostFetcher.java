@@ -1,9 +1,9 @@
 package app.runnable;
 
-import app.constants.Mode;
-import com.google.gson.Gson;
-import app.bean.ConnectionContextResponse;
 import app.bean.ConnectionContext;
+import app.bean.ConnectionContextResponse;
+import app.constants.ServerMode;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -26,7 +26,7 @@ public class HostFetcher implements Runnable {
     public void run() {
         while (true) {
             try {
-                defineCurrent(ctx.getAct(), ctx.getCode());
+                defineCurrent(ctx.getMode(), ctx.getCode());
                 Thread.sleep(5000);
             } catch (IOException | InterruptedException ioException) {
                 ioException.printStackTrace();
@@ -34,8 +34,8 @@ public class HostFetcher implements Runnable {
         }
     }
 
-    private void defineCurrent(Mode act, String code) throws IOException {
-        URL url = new URL(this.url + "/" + act + "/" + code);
+    private void defineCurrent(ServerMode mode, String code) throws IOException {
+        URL url = new URL(this.url + "/" + mode + "/" + code);
         BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
         StringBuilder stringBuilder = new StringBuilder();
         String ln = "";

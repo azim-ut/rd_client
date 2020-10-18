@@ -47,14 +47,14 @@ public class TcpScreenSendSocket extends CastImage {
 
                 while (true) {
                     if (ctx.getDateline() != socketLastDateline) {
-                        log.info("Code: {}. New socket detected. My dateline: {}, socket dateline: {}", ctx.getCode(), socketLastDateline, ctx.getDateline());
+                        log.info("Code: {}. New socket detected. My dateline: {}, socket datelin    e: {}", ctx.getCode(), socketLastDateline, ctx.getDateline());
                         break;
                     }
                     ScreenPacket packet = screens.peek();
                     if (packet != null) {
                         log.info("Send 1 of " + screens.size() + " Image into. " + packet.toString());
                         outputStream.writeObject(packet);
-                        outputStream.flush();
+//                        outputStream.flush();
                         try {
                             if (socket.getInputStream().available() != 0) {
                                 if (inputStream == null) {

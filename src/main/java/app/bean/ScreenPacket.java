@@ -15,11 +15,13 @@ public class ScreenPacket implements Serializable {
 
     private final String removeFile;
 
+    private final String id;
+
     private final String code;
 
-    private final long epoch;
-
     private final int position;
+
+    private final long epoch;
 
     private final int x;
 
@@ -35,14 +37,16 @@ public class ScreenPacket implements Serializable {
 
     private final byte[] bytes;
 
+
     @Override
     public String toString() {
-        return "ActionPacket{" +
+        return "ScreenPacket{" +
                 "createFile='" + createFile + '\'' +
                 ", removeFile='" + removeFile + '\'' +
+                ", id='" + id + '\'' +
                 ", code='" + code + '\'' +
-                ", epoch=" + epoch +
                 ", position=" + position +
+                ", epoch=" + epoch +
                 ", x=" + x +
                 ", y=" + y +
                 ", tw=" + tw +

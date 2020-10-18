@@ -1,7 +1,8 @@
 package app;
 
 import app.bean.ConnectionContext;
-import app.constants.Mode;
+import app.constants.ClientMode;
+import app.constants.ServerMode;
 import app.runnable.HostFetcher;
 import com.google.common.collect.Lists;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -31,7 +32,7 @@ public class ConnectionTest {
 
     @Before
     public void init() {
-        this.ctx = new ConnectionContext(Mode.CAST, "TEST");
+        this.ctx = new ConnectionContext(ServerMode.SAVE, "TEST");
     }
 
     @Ignore

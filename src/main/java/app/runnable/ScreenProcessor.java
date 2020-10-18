@@ -88,6 +88,7 @@ public class ScreenProcessor implements Runnable {
 
         if (newBlockSize != sampleBlockSize) {
             toPipe(ScreenPacket.builder()
+                    .id(ctx.getCode() + "_" + sampleIndex)
                     .epoch(epoch)
                     .createFile(fileName)
                     .position(sampleIndex)
@@ -97,7 +98,7 @@ public class ScreenProcessor implements Runnable {
                     .h(row.getHeight())
                     .x(x)
                     .y(y)
-                    .code("TEST")
+                    .code(ctx.getCode())
                     .bytes(getBytes(newCrop))
                     .build()
             );
@@ -110,6 +111,7 @@ public class ScreenProcessor implements Runnable {
         try {
             String fileName = "bg.jpg";
             toPipe(ScreenPacket.builder()
+                    .id(ctx.getCode() + "_" + 0)
                     .createFile(fileName)
                     .position(0)
                     .tw(bgScreen.getWidth())
@@ -118,7 +120,7 @@ public class ScreenProcessor implements Runnable {
                     .h(screen.getHeight())
                     .x(0)
                     .y(0)
-                    .code("TEST")
+                    .code(ctx.getCode())
                     .bytes(getBytes(screen.getBufferedImage()))
                     .build()
             );
