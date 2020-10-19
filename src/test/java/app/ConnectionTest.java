@@ -1,9 +1,8 @@
 package app;
 
 import app.bean.ConnectionContext;
-import app.constants.ClientMode;
 import app.constants.ServerMode;
-import app.runnable.HostFetcher;
+import app.process.host.HostFetcherRunnable;
 import com.google.common.collect.Lists;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -38,7 +37,7 @@ public class ConnectionTest {
     @Ignore
     @Test
     public void connectionPath() throws InterruptedException {
-        new Thread(new HostFetcher(ctx)).start();
+        new Thread(new HostFetcherRunnable(ctx)).start();
         Socket socket = null;
 
         clientMessages.addAll(Lists.newArrayList("one", "two", "three", "close"));

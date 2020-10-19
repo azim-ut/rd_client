@@ -2,7 +2,7 @@ package app;
 
 import app.bean.ConnectionContext;
 import app.constants.ServerMode;
-import app.runnable.HostFetcher;
+import app.process.host.HostFetcherRunnable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +22,8 @@ public class ReceiveScreenApp extends BaseApp {
         init(args);
         ConnectionContext ctx = new ConnectionContext(ServerMode.SHOW, this.code);
 
-        Thread hostUpdateThread = new Thread(new HostFetcher(ctx), "HostUpdateThread");
+        Thread hostUpdateThread = new Thread(new HostFetcherRunnable(ctx), "HostUpdateThread");
         hostUpdateThread.start();
-
-        long socketLastDateline = ctx.getDateline();
 
         while (true) {
             if (!ctx.enableToConnect()) {
@@ -37,7 +35,6 @@ public class ReceiveScreenApp extends BaseApp {
                 continue;
             }
             try (Socket socket = new Socket(ctx.getIp(), ctx.getPort())) {
-                ctx.setConnected(true);
                 log.info("Connection to the socket: " + ctx.toString());
 
                 int nextSize = 0;

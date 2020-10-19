@@ -1,17 +1,17 @@
 package app;
 
 import app.bean.ConnectionContext;
-import app.bean.ScreenPacket;
 import app.constants.ServerMode;
-import app.runnable.HostFetcher;
-import app.runnable.Monitoring;
-import app.runnable.ScreenProcessor;
-import app.runnable.TcpScreenSendSocket;
+import app.process.Monitoring;
+import app.process.cast.CastImageThread;
+import app.process.host.HostFetcherThread;
+import app.process.screen.ScreenThread;
+import app.screen.ScreenQueue;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.util.LinkedList;
-import java.util.Queue;
 
 /**
  * Hello world!
@@ -20,22 +20,28 @@ import java.util.Queue;
 @Component
 public class CastScreenApp extends BaseApp {
 
-    private final Queue<ScreenPacket> pipe = new LinkedList<>();
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public ScreenQueue prototypeBean() {
+        return new ScreenQueue();
+    }
 
     public void start(String[] args) {
         init(args);
         ConnectionContext ctx = new ConnectionContext(ServerMode.SAVE, this.code);
 
-        Thread hostUpdateThread = new Thread(new HostFetcher(ctx), "HostUpdateThread");
-        Thread senderThread = new Thread(new TcpScreenSendSocket(ctx, pipe), "SendScreenThread");
-        Thread screenThread = new Thread(new ScreenProcessor(ctx, pipe), "ScreenProcessThread");
+        HostFetcherThread hostUpdateThread = new HostFetcherThread(ctx);
+        CastImageThread senderThread = new CastImageThread(ctx);
+        ScreenThread screenThread = new ScreenThread(ctx);
 
-        Thread monitoringThread = new Thread(new Monitoring(ctx, hostUpdateThread, senderThread, screenThread), "Monitor");
+        Thread monitoringThread = new Thread(new Monitoring(ctx), "Monitor");
+
+
+        hostUpdateThread.start();
+        senderThread.start();
+        screenThread.start();
 
         monitoringThread.start();
-
-        senderThread.start();
-        hostUpdateThread.start();
-        screenThread.start();
     }
 }

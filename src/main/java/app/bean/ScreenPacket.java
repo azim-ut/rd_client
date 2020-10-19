@@ -11,48 +11,36 @@ import java.io.Serializable;
 @Builder
 public class ScreenPacket implements Serializable {
 
-    private final String createFile;
-
-    private final String removeFile;
-
     private final String id;
-
-    private final String code;
-
-    private final int position;
-
-    private final long epoch;
-
-    private final int x;
-
-    private final int y;
-
-    private final int tw;
-
-    private final int th;
-
-    private final int w;
-
-    private final int h;
 
     private final byte[] bytes;
 
+    private String code = null;
+    private int position = -1;
+
+    public String getCode() {
+        parseId();
+        return code;
+    }
+
+    public int getPosition() {
+        parseId();
+        return position;
+    }
+
+    private void parseId() {
+        if (code == null || position == -1) {
+            String[] temp = id.split(":");
+            code = temp[0];
+            position = Integer.parseInt(temp[1]);
+        }
+    }
 
     @Override
     public String toString() {
         return "ScreenPacket{" +
-                "createFile='" + createFile + '\'' +
-                ", removeFile='" + removeFile + '\'' +
                 ", id='" + id + '\'' +
-                ", code='" + code + '\'' +
-                ", position=" + position +
-                ", epoch=" + epoch +
-                ", x=" + x +
-                ", y=" + y +
-                ", tw=" + tw +
-                ", th=" + th +
-                ", w=" + w +
-                ", h=" + h +
+                ", bytes length='" + bytes.length + '\'' +
                 '}';
     }
 }

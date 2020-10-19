@@ -1,6 +1,7 @@
 package app.bean;
 
 import app.constants.ServerMode;
+import app.screen.ScreenQueue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -9,16 +10,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ConnectionContext {
+
+    private final ScreenQueue screens = new ScreenQueue();
+
     private final ServerMode mode;
     private final String code;
     private String ip = null;
     private int port;
     private long dateline;
-    private Boolean connected = false;
-
-    public synchronized void setConnected(Boolean val) {
-        this.connected = val;
-    }
 
     public boolean enableToConnect() {
         if (ip == null || port == 0 || code == null) {
@@ -30,11 +29,14 @@ public class ConnectionContext {
         return true;
     }
 
+    public ScreenQueue screens() {
+        return screens;
+    }
+
     public void reset() {
         this.ip = null;
         this.port = 0;
         dateline = 0;
-        connected = false;
     }
 
     @Override
@@ -44,7 +46,6 @@ public class ConnectionContext {
                 ", ip='" + ip + '\'' +
                 ", port=" + port +
                 ", dateline=" + dateline +
-                ", connected=" + connected +
                 '}';
     }
 }
