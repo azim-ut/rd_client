@@ -155,7 +155,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>../Client</finalName>
+                            <finalName>../../RD/client/Client</finalName>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <transformers>
                                 <transformer

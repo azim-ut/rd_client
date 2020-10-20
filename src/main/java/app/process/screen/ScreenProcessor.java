@@ -58,6 +58,7 @@ public class ScreenProcessor implements Runnable {
                         sampleIndex++;
                     }
                 }
+                Thread.sleep(100);
                 epoch++;
             }
         } catch (Exception e) {

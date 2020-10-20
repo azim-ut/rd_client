@@ -26,9 +26,14 @@ public class TcpCastImageRunnable implements Runnable {
     public void run() {
         while (true) {
             if (!ctx.enableToConnect()) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    log.error(e.getMessage(), e);
+                }
                 continue;
             }
-            
+
             try (Socket socket = new Socket(ctx.getIp(), ctx.getPort())) {
                 log.info("Connection to the socket: " + ctx.toString());
                 ObjectOutputStream outputStream = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
@@ -50,6 +55,11 @@ public class TcpCastImageRunnable implements Runnable {
                             log.info("Queue is off?");
                             lastQueueSize = 0;
                         }
+                    }
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        log.error(e.getMessage(), e);
                     }
                 }
             } catch (IOException e) {
