@@ -4,9 +4,9 @@ import app.bean.ConnectionContext;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HostFetcherThread extends Thread {
+public class HostUpdateThread extends Thread {
 
-    public HostFetcherThread(ConnectionContext ctx) {
+    public HostUpdateThread(ConnectionContext ctx) {
         super(new HostFetcherRunnable(ctx), "HostFetcherThread");
     }
 }

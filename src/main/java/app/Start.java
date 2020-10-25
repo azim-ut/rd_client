@@ -1,26 +1,21 @@
 package app;
 
-import javax.swing.*;
-import java.net.Socket;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
-public class Start {
+import java.util.Objects;
 
-    public static void main(String[] args) {
-        String ip = JOptionPane.showInputDialog("Please enter server IP");
-        new Start().initilize(ip, Constants.PORT);
+public class Start extends Application {
 
-    }
 
-    private void initilize(String ip, int port) {
-        try {
-            Socket sc = new Socket(ip, port);
-            System.out.println("Connection to the server: " + ip + ":" + port);
-            Authentication frame1 = new Authentication(sc);
-            frame1.setSize(300, 80);
-            frame1.setLocation(500, 300);
-            frame1.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource("big_brother.fxml")));
+        primaryStage.setTitle("Большой Брат");
+        primaryStage.setScene(new Scene(root));
+        primaryStage.show();
     }
 }

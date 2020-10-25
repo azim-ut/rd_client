@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 
 @Slf4j
@@ -31,10 +32,14 @@ public class ScreenQueue {
     }
 
     public boolean isFull() {
-        if (fullCheckCounterToRemove > max && !pipe.isEmpty()) {
-            pipe.remove();
-        }else{
-            fullCheckCounterToRemove++;
+        try {
+            if (fullCheckCounterToRemove > max && !pipe.isEmpty()) {
+                pipe.remove();
+            } else {
+                fullCheckCounterToRemove++;
+            }
+        } catch (NoSuchElementException e) {
+            log.error("ScreenQueue Exception " + e.getMessage(), e);
         }
         return pipe.size() == max;
     }

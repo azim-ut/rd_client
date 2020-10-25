@@ -2,7 +2,7 @@ package app.process.screen;
 
 import app.bean.ConnectionContext;
 import app.bean.ScreenPacket;
-import app.service.ScreenService;
+import app.service.ScreenToolsService;
 import app.service.bean.Screen;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,20 +14,19 @@ import java.io.IOException;
 import java.util.List;
 
 @Slf4j
-public class ScreenProcessor implements Runnable {
+public class ScreenProcessorRunnable implements Runnable {
 
-    private final ScreenService screenService = new ScreenService();
+    private final ScreenToolsService screenService = new ScreenToolsService();
     private final ConnectionContext ctx;
     private List<Integer> samples = null;
 
-    public ScreenProcessor(ConnectionContext ctx) {
+    public ScreenProcessorRunnable(ConnectionContext ctx) {
         this.ctx = ctx;
     }
 
     // standard constructors
     public void run() {
 
-        long epoch = 0;
         try {
             Screen bgScreen = screenService.get();
             int width = bgScreen.getWidth();
@@ -43,9 +42,6 @@ public class ScreenProcessor implements Runnable {
 
                 for (int y = 0; y < height; y = y + side) {
                     for (int x = 0; x < width; x = x + side) {
-                        if (ctx.screens().isFull()) {
-                            continue;
-                        }
                         changes += processArea(x, y, sampleIndex, side);
 
                         if (changes > samples.size() / 2) {
@@ -59,12 +55,9 @@ public class ScreenProcessor implements Runnable {
                     }
                 }
                 Thread.sleep(100);
-                epoch++;
             }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            log.info("Screen Processor is OFF on epoch {}", epoch);
+        } catch (InterruptedException e) {
+            log.info("ScreenProcessor interrupted");
         }
     }
 

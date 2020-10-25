@@ -3,19 +3,15 @@ package app.bean;
 import lombok.Getter;
 
 @Getter
-public class ConnectionContextResponse {
-    private ConnectionPath data;
+public class SocketRestResponse {
+    private SocketData data;
 
     public String getIp() {
         return data.ip;
     }
 
-    public String getCode() {
-        return data.code;
-    }
-
     public int getPort() {
-        return data.port;
+        return data.port_save;
     }
 
     public long getDateline() {
@@ -23,10 +19,12 @@ public class ConnectionContextResponse {
     }
 
     @Getter
-    static class ConnectionPath {
-        private String code;
+    static class SocketData {
         private String ip;
-        private int port;
+        private int port_save;
+        private int port_show;
+        private int busy_save;
+        private int busy_show;
         private long dt;
     }
 

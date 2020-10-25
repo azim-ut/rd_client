@@ -1,72 +1,59 @@
 package app.service;
 
-import app.service.bean.Screen;
+import app.bean.ConnectionContext;
+import app.process.cast.SenderImageThread;
+import app.process.host.HostUpdateThread;
+import app.process.screen.ScreenGetThread;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-
-@Slf4j
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ScreenService {
-    private Robot robot;
+    private HostUpdateThread hostUpdateThread;
+    private SenderImageThread senderImageThread;
+    private ScreenGetThread screenGetThread;
+    private Thread monitor;
 
-    public Screen get() {
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//        Screen screen = screenService.get(250, 100);
-        int width = dim.width;
-        int height = dim.height;
-        return get(width, height);
-    }
+    final private ConnectionContext ctx;
 
-    public Screen get(int width, int height) {
-        Rectangle rectangle = new Rectangle(width, height);
-        return Screen.builder()
-                .bufferedImage(screenCapture(rectangle))
-                .width(rectangle.width)
-                .height(rectangle.height)
-                .build();
-    }
-
-    public int getMaxEnabledSquare(Screen screen) {
-        return getMaxEnabledSquare(screen.getWidth(), screen.getHeight());
-    }
-
-    public int getMaxEnabledSquare(int a, int b) {
-        if (a == 0) {
-            return b;
-        }
-        if (b == 0) {
-            return a;
-        }
-        if (a > b) {
-            int div = Math.floorDiv(a, b);
-            int delta = a - b * div;
-            return getMaxEnabledSquare(b, delta);
-        }
-        int div = Math.floorDiv(b, a);
-        int delta = b - a * div;
-        return getMaxEnabledSquare(a, delta);
-    }
-
-    private void defineRobot() {
-        if (this.robot == null) try {
-            {
-                GraphicsEnvironment gEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                GraphicsDevice gDev = gEnv.getDefaultScreenDevice();
-                this.robot = new Robot(gDev);
+    public void start() {
+        monitor = new Thread(() -> {
+            try {
+                startHostThread();
+                startScreenGetThread();
+                startImageSendThread();
+                while (true) {
+                    Thread.sleep(100);
+                }
+            } catch (InterruptedException e) {
+                log.error("ScreenService monitor: " + e.getMessage());
             }
-        } catch (AWTException e) {
-            log.error("AWTException. Can't create Robot instance. ");
-        }
+        });
+        monitor.start();
     }
 
-    public BufferedImage screenCapture(Rectangle rectangle) {
-        defineRobot();
-        if (robot != null) {
-            return robot.createScreenCapture(rectangle);
-        }
-        return null;
+    public void stop() {
+        hostUpdateThread.interrupt();
+        senderImageThread.interrupt();
+        screenGetThread.interrupt();
+        monitor.interrupt();
+    }
+
+    private void startHostThread() {
+        hostUpdateThread = new HostUpdateThread(ctx);
+        hostUpdateThread.start();
+    }
+
+    private void startScreenGetThread() {
+        screenGetThread = new ScreenGetThread(ctx);
+        screenGetThread.start();
+    }
+
+    private void startImageSendThread() {
+        senderImageThread = new SenderImageThread(ctx);
+        senderImageThread.start();
     }
 }

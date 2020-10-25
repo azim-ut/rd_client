@@ -1,8 +1,7 @@
 package app.process.host;
 
 import app.bean.ConnectionContext;
-import app.bean.ConnectionContextResponse;
-import app.constants.ServerMode;
+import app.bean.SocketRestResponse;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +13,7 @@ import java.net.URL;
 @Slf4j
 public class HostFetcherRunnable implements Runnable {
     private final ConnectionContext ctx;
-    private final static String URL = "https://it-prom.com/charts/rest/ip/code";
+    private final static String URL = "https://it-prom.com/charts/rest/socket/save";
     private final Gson gson = new Gson();
 
 
@@ -25,24 +24,25 @@ public class HostFetcherRunnable implements Runnable {
     @Override
     public void run() {
         long lastHostDateline = 0;
-        while (true) {
-            try {
-                defineCurrent(ctx.getMode(), ctx.getCode());
-                if (lastHostDateline == 0) {
-                    lastHostDateline = ctx.getDateline();
+        try {
+            while (true) {
+                try {
+                    defineCurrent();
+                    if (lastHostDateline == 0) {
+                        lastHostDateline = ctx.getDateline();
+                    }
+                    Thread.sleep(5000);
+                } catch (IOException ioException) {
+                    log.error("HostFetcherRunnable exception: " + ioException.getMessage());
                 }
-
-                Thread.sleep(5000);
-            } catch (IOException ioException) {
-                log.error("HostFetcherRunnable exception: " + ioException.getMessage());
-            } catch (InterruptedException e) {
-                log.error("HostFetcherRunnable InterruptedException " + e.getMessage(), e);
             }
+        } catch (InterruptedException e) {
+            log.info("HostFetcherRunnable interrupted.");
         }
     }
 
-    private void defineCurrent(ServerMode mode, String code) throws IOException {
-        URL url = new URL(URL + "/" + mode + "/" + code);
+    private void defineCurrent() throws IOException {
+        URL url = new URL(URL);
         BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
         StringBuilder stringBuilder = new StringBuilder();
         String ln = "";
@@ -50,7 +50,11 @@ public class HostFetcherRunnable implements Runnable {
             stringBuilder.append(ln);
         }
 
-        ConnectionContextResponse response = gson.fromJson(stringBuilder.toString(), ConnectionContextResponse.class);
+        SocketRestResponse response = gson.fromJson(stringBuilder.toString(), SocketRestResponse.class);
+        if (response.getData() == null) {
+            log.info("No available port found: " + url);
+            return;
+        }
         ctx.setIp(response.getIp());
         ctx.setPort(response.getPort());
         ctx.setDateline(response.getDateline());
