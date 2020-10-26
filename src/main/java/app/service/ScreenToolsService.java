@@ -2,6 +2,7 @@ package app.service;
 
 import app.service.bean.Screen;
 import lombok.extern.slf4j.Slf4j;
+import org.imgscalr.Scalr;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -22,8 +23,15 @@ public class ScreenToolsService {
 
     public Screen get(int width, int height) {
         Rectangle rectangle = new Rectangle(width, height);
-        return Screen.builder()
-                .bufferedImage(screenCapture(rectangle))
+        BufferedImage screen = screenCapture(rectangle);
+
+        int newWidth = (int) Math.round(width / 1.2);
+        int newHeight = (int) Math.round(height / 1.2);
+        BufferedImage res =
+                Scalr.resize(screen, Scalr.Method.BALANCED, newWidth, newHeight);
+
+            return Screen.builder()
+                .bufferedImage(res)
                 .width(rectangle.width)
                 .height(rectangle.height)
                 .build();

@@ -11,7 +11,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class ScreenProcessorRunnable implements Runnable {
@@ -19,6 +21,8 @@ public class ScreenProcessorRunnable implements Runnable {
     private final ScreenToolsService screenService = new ScreenToolsService();
     private final ConnectionContext ctx;
     private List<Integer> samples = null;
+    private final Map<String, Integer> processedPackets = new HashMap<>();
+
 
     public ScreenProcessorRunnable(ConnectionContext ctx) {
         this.ctx = ctx;
@@ -39,10 +43,10 @@ public class ScreenProcessorRunnable implements Runnable {
             while (true) {
                 int sampleIndex = 0;
                 int changes = 0;
-
+                BufferedImage currentScreen = screenService.get().getBufferedImage();
                 for (int y = 0; y < height; y = y + side) {
                     for (int x = 0; x < width; x = x + side) {
-                        changes += processArea(x, y, sampleIndex, side);
+                        changes += processArea(currentScreen, x, y, sampleIndex, side);
 
                         if (changes > samples.size() / 2) {
                             bgScreen = screenService.get();
@@ -61,27 +65,37 @@ public class ScreenProcessorRunnable implements Runnable {
         }
     }
 
-    private int processArea(int x, int y, int sampleIndex, int sideSize) {
-        BufferedImage newCrop = screenService.get().getBufferedImage().getSubimage(x, y, sideSize, sideSize);
+    private int processArea(BufferedImage img, int x, int y, int sampleIndex, int sideSize) {
         byte[] bytes = new byte[0];
-        Screen row = Screen.builder()
-                .bufferedImage(newCrop)
-                .width(sideSize)
-                .height(sideSize)
-                .build();
-        int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
-        if (newBlockSize >= 0) {
-            int sampleBlockSize = samples.get(sampleIndex);
-            if (newBlockSize != sampleBlockSize) {
-                bytes = getBytes(newCrop);
+        try {
+            if(x >= img.getWidth() || (x+sideSize) > img.getWidth()){
+                return -1;
             }
-        }
+            if(y >= img.getHeight() || (y+sideSize) > img.getHeight()){
+                return -1;
+            }
+            BufferedImage newCrop = img.getSubimage(x, y, sideSize, sideSize);
+            Screen row = Screen.builder()
+                    .bufferedImage(newCrop)
+                    .width(sideSize)
+                    .height(sideSize)
+                    .build();
+            int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
+            if (newBlockSize >= 0) {
+                int sampleBlockSize = samples.get(sampleIndex);
+                if (newBlockSize != sampleBlockSize) {
+                    bytes = getBytes(newCrop);
+                }
+            }
 
-        toPipe(ScreenPacket.builder()
-                .id(defineId(ctx.getCode(), sampleIndex, x, y, row.getWidth(), row.getHeight()))
-                .bytes(bytes)
-                .build()
-        );
+            toPipe(ScreenPacket.builder()
+                    .id(defineId(ctx.getCode(), sampleIndex, x, y, row.getWidth(), row.getHeight()))
+                    .bytes(bytes)
+                    .build()
+            );
+        }catch (Exception e){
+            log.error(e.getMessage());
+        }
         return bytes.length > 0 ? 1 : 0;
     }
 
@@ -113,8 +127,12 @@ public class ScreenProcessorRunnable implements Runnable {
         }
     }
 
-    private void toPipe(ScreenPacket action) {
-        ctx.screens().add(action);
+    private void toPipe(ScreenPacket packet) {
+        if(processedPackets.containsKey(packet.getId()) && processedPackets.get(packet.getId()) == packet.getBytes().length){
+            return;
+        }
+        ctx.screens().add(packet);
+        processedPackets.put(packet.getId(), packet.getBytes().length);
     }
 
     public byte[] getBytes(BufferedImage bufferedImage) {

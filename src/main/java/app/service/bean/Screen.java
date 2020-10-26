@@ -63,6 +63,9 @@ public class Screen {
             return -1;
         }
 //        System.out.println("getAreaSum[" + pos + "]: " +  res);
+        if(res<0){
+            res *= -1;
+        }
         return res;
     }
 }
