@@ -35,7 +35,7 @@ public class TcpShareImageRunnable implements Runnable {
                     continue;
                 }
 
-                try (Socket socket = new Socket(ctx.getIp(), ctx.getPort())) {
+                try (Socket socket = new Socket(ctx.getIp(), ctx.getPortSave())) {
                     log.info("Connection to the socket: " + ctx.toString());
                     ObjectOutputStream outputStream = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 //                ObjectInputStream inputStream = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -43,15 +43,15 @@ public class TcpShareImageRunnable implements Runnable {
                     int lastQueueSize = -1;
 
                     while (true) {
-                        ScreenPacket packet = ctx.screens().peek();
+                        ScreenPacket packet = ctx.toSave().peek();
                         if (packet != null) {
-                            log.info("Send 1 of " + ctx.screens().size() + " Image into. " + packet.toString());
+//                            log.info("Send 1 of " + ctx.toSave().size() + " Image into. " + packet.toString());
                             outputStream.writeObject(packet);
                             outputStream.flush();
 //                        outputStream.flush();
 //                        inputStream = waitForAnswer(socket, inputStream);
-                            ctx.screens().poll();
-                            lastQueueSize = ctx.screens().size();
+                            ctx.toSave().poll();
+                            lastQueueSize = ctx.toSave().size();
                         } else {
                             if (lastQueueSize != 0) {
                                 log.info("Queue is off?");

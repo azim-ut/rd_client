@@ -10,8 +10,12 @@ public class SocketRestResponse {
         return data.ip;
     }
 
-    public int getPort() {
+    public int getPortSave() {
         return data.port_save;
+    }
+
+    public int getPortShow() {
+        return data.port_show;
     }
 
     public long getDateline() {

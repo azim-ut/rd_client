@@ -7,6 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 public class HostUpdateThread extends Thread {
 
     public HostUpdateThread(ConnectionContext ctx) {
-        super(new HostFetcherRunnable(ctx), "HostFetcherThread");
+        super(new HostUpdateRunnable(ctx), "HostFetcherThread");
     }
 }

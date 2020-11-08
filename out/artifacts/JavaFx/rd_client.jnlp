@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="rd_client.jnlp">
+  <information>
+    <title>JavaFx</title>
+    <vendor>Unknown</vendor>
+    <description>JavaFx</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="aether-api-1.7.jar" size="74176" download="eager" />
+    <jar href="aether-impl-1.7.jar" size="106275" download="eager" />
+    <jar href="aether-spi-1.7.jar" size="13549" download="eager" />
+    <jar href="aether-util-0.9.0.M2.jar" size="133588" download="eager" />
+    <jar href="aether-util-1.7.jar" size="107949" download="eager" />
+    <jar href="annotations-13.0.jar" size="17536" download="eager" />
+    <jar href="asm-8.0.jar" size="121691" download="eager" />
+    <jar href="asm-analysis-8.0.jar" size="33437" download="eager" />
+    <jar href="asm-commons-8.0.jar" size="71562" download="eager" />
+    <jar href="asm-tree-8.0.jar" size="52612" download="eager" />
+    <jar href="asm-util-8.0.jar" size="84711" download="eager" />
+    <jar href="checker-compat-qual-2.5.5.jar" size="5852" download="eager" />
+    <jar href="commons-codec-1.2.jar" size="30085" download="eager" />
+    <jar href="commons-collections4-4.4.jar" size="751914" download="eager" />
+    <jar href="commons-httpclient-3.1.jar" size="305001" download="eager" />
+    <jar href="commons-io-2.6.jar" size="214788" download="eager" />
+    <jar href="commons-lang3-3.7.jar" size="499634" download="eager" />
+    <jar href="commons-logging-1.0.4.jar" size="38015" download="eager" />
+    <jar href="error_prone_annotations-2.3.4.jar" size="13879" download="eager" />
+    <jar href="failureaccess-1.0.1.jar" size="4617" download="eager" />
+    <jar href="gson-2.8.6.jar" size="240255" download="eager" />
+    <jar href="guava-28.2-android.jar" size="2626710" download="eager" />
+    <jar href="httpclient5-5.0.1.jar" size="779025" download="eager" />
+    <jar href="httpcore5-5.0.1.jar" size="820418" download="eager" />
+    <jar href="httpcore5-h2-5.0.1.jar" size="228353" download="eager" />
+    <jar href="imgscalr-lib-4.2.jar" size="27893" download="eager" />
+    <jar href="j2objc-annotations-1.3.jar" size="8781" download="eager" />
+    <jar href="javafx-base-15.0.1-win.jar" size="745526" download="eager" />
+    <jar href="javafx-base-15.0.1.jar" size="302" download="eager" />
+    <jar href="javafx-controls-15.0.1-win.jar" size="2531028" download="eager" />
+    <jar href="javafx-controls-15.0.1.jar" size="306" download="eager" />
+    <jar href="javafx-fxml-15.0.1-win.jar" size="128790" download="eager" />
+    <jar href="javafx-fxml-15.0.1.jar" size="302" download="eager" />
+    <jar href="javafx-graphics-15.0.1-win.jar" size="5898578" download="eager" />
+    <jar href="javafx-graphics-15.0.1.jar" size="306" download="eager" />
+    <jar href="javax.inject-1.jar" size="2497" download="eager" />
+    <jar href="jdependency-2.4.0.jar" size="179991" download="eager" />
+    <jar href="jdom2-2.0.6.jar" size="304924" download="eager" />
+    <jar href="jsoup-1.13.1.jar" size="393851" download="eager" />
+    <jar href="jsr305-3.0.2.jar" size="19936" download="eager" />
+    <jar href="kotlin-stdlib-1.3.70.jar" size="1379828" download="eager" />
+    <jar href="kotlin-stdlib-common-1.3.70.jar" size="179597" download="eager" />
+    <jar href="listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" size="2199" download="eager" />
+    <jar href="logback-classic-1.1.3.jar" size="280928" download="eager" />
+    <jar href="logback-core-1.1.3.jar" size="455041" download="eager" />
+    <jar href="logback-jackson-0.1.5.jar" size="3738" download="eager" />
+    <jar href="logback-json-classic-0.1.5.jar" size="4901" download="eager" />
+    <jar href="logback-json-core-0.1.5.jar" size="4952" download="eager" />
+    <jar href="maven-aether-provider-3.0.jar" size="51189" download="eager" />
+    <jar href="maven-artifact-3.0.jar" size="51908" download="eager" />
+    <jar href="maven-artifact-transfer-0.12.0.jar" size="120325" download="eager" />
+    <jar href="maven-common-artifact-filters-3.0.1.jar" size="61454" download="eager" />
+    <jar href="maven-core-3.0.jar" size="527040" download="eager" />
+    <jar href="maven-dependency-tree-3.0.1.jar" size="36678" download="eager" />
+    <jar href="maven-model-3.0.jar" size="164685" download="eager" />
+    <jar href="maven-model-builder-3.0.jar" size="147974" download="eager" />
+    <jar href="maven-plugin-api-3.0.jar" size="48920" download="eager" />
+    <jar href="maven-repository-metadata-3.0.jar" size="30082" download="eager" />
+    <jar href="maven-settings-3.0.jar" size="46667" download="eager" />
+    <jar href="maven-settings-builder-3.0.jar" size="37780" download="eager" />
+    <jar href="maven-shade-plugin-3.2.4.jar" size="134391" download="eager" />
+    <jar href="maven-shared-utils-3.1.0.jar" size="163692" download="eager" />
+    <jar href="okhttp-4.5.0.jar" size="768979" download="eager" />
+    <jar href="okio-2.5.0.jar" size="243332" download="eager" />
+    <jar href="picocli-3.6.1.jar" size="243125" download="eager" />
+    <jar href="plexus-cipher-1.4.jar" size="13494" download="eager" />
+    <jar href="plexus-classworlds-2.2.3.jar" size="46099" download="eager" />
+    <jar href="plexus-component-annotations-1.5.5.jar" size="4211" download="eager" />
+    <jar href="plexus-interpolation-1.14.jar" size="61072" download="eager" />
+    <jar href="plexus-sec-dispatcher-1.3.jar" size="28555" download="eager" />
+    <jar href="plexus-utils-3.3.0.jar" size="263253" download="eager" />
+    <jar href="rd_client.jar" size="99144" download="eager" />
+    <jar href="sisu-guice-2.1.7-noaop.jar" size="471737" download="eager" />
+    <jar href="sisu-inject-bean-1.4.2.jar" size="152989" download="eager" />
+    <jar href="sisu-inject-plexus-1.4.2.jar" size="201716" download="eager" />
+    <jar href="slf4j-api-1.7.30.jar" size="41472" download="eager" />
+    <jar href="spring-aop-5.1.6.RELEASE.jar" size="369018" download="eager" />
+    <jar href="spring-beans-5.1.6.RELEASE.jar" size="673302" download="eager" />
+    <jar href="spring-context-5.1.6.RELEASE.jar" size="1099880" download="eager" />
+    <jar href="spring-core-5.1.6.RELEASE.jar" size="1293481" download="eager" />
+    <jar href="spring-expression-5.1.6.RELEASE.jar" size="280482" download="eager" />
+    <jar href="spring-jcl-5.1.6.RELEASE.jar" size="23762" download="eager" />
+  </resources>
+  <jfx:javafx-desc  width="600" height="400" main-class="app.Start"  name="JavaFx" />
+  <update check="background"/>
+</jnlp>
