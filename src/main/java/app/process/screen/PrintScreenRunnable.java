@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -20,7 +19,7 @@ public class PrintScreenRunnable implements Runnable {
 
     private final ScreenToolsService screenService = new ScreenToolsService();
     private final ConnectionContext ctx;
-    private List<Integer> samples = null;
+    private Map<Integer, Integer> samples = new HashMap<>();
     private final Map<String, Integer> processedPackets = new HashMap<>();
 
 
@@ -38,34 +37,53 @@ public class PrintScreenRunnable implements Runnable {
             int side = screenService.getMaxEnabledSquare(bgScreen);
 
             saveBg(bgScreen);
-            samples = bgScreen.croppedToSet(side, side);
+//            samples = bgScreen.cropToSet(side, side);
 
             while (true) {
+                boolean breaked = false;
                 int sampleIndex = 1;
                 int changes = 0;
+                boolean bgUpdated = false;
                 BufferedImage currentScreen = screenService.get().getBufferedImage();
                 for (int y = 0; y < height; y = y + side) {
                     for (int x = 0; x < width; x = x + side) {
-                        changes += processArea(currentScreen, x, y, sampleIndex, side);
+                        changes += processArea(bgScreen, currentScreen, x, y, sampleIndex, side);
 
                         if (changes > samples.size() / 2) {
                             bgScreen = screenService.get();
                             saveBg(bgScreen);
-                            samples = bgScreen.croppedToSet(side, side);
+                            samples.clear();
+//                            samples.addAll(bgScreen.cropToSet(side, side));
                             //TODO start check from the begin, because of bg updated
-                            continue;
+                            bgUpdated = true;
+                            breaked = true;
                         }
                         sampleIndex++;
+
+                        if (breaked) {
+                            break;
+                        }
+                    }
+                    if (breaked) {
+                        break;
                     }
                 }
-                Thread.sleep(100);
+                if (bgUpdated) {
+                    toPipe(ScreenPacket.builder()
+                            .id(defineId(ctx.getCode(), 0, 0, 0, 0, 0))
+                            .bytes(new byte[0])
+                            .command("ONLY_BG")
+                            .build()
+                    );
+                }
+                Thread.sleep(10);
             }
         } catch (InterruptedException e) {
             log.info("ScreenProcessor interrupted");
         }
     }
 
-    private int processArea(BufferedImage img, int x, int y, int sampleIndex, int sideSize) {
+    private int processArea(Screen bgScreen, BufferedImage img, int x, int y, int sampleIndex, int sideSize) {
         byte[] bytes = new byte[0];
         try {
             if (x >= img.getWidth() || (x + sideSize) > img.getWidth()) {
@@ -74,7 +92,10 @@ public class PrintScreenRunnable implements Runnable {
             if (y >= img.getHeight() || (y + sideSize) > img.getHeight()) {
                 return -1;
             }
-            BufferedImage newCrop = img.getSubimage(x, y, sideSize, sideSize);
+            if (!samples.containsKey(sampleIndex)){
+                samples.put(sampleIndex, bgScreen.getAreaSum(x, y, sideSize, sideSize));
+            }
+                BufferedImage newCrop = img.getSubimage(x, y, sideSize, sideSize);
             Screen row = Screen.builder()
                     .bufferedImage(newCrop)
                     .width(sideSize)

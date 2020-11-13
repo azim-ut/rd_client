@@ -31,7 +31,7 @@ public class TcpShareImageRunnable implements Runnable {
                 }
 
                 if (!ctx.enableToConnect()) {
-                    Thread.sleep(50);
+                    Thread.sleep(10);
                     continue;
                 }
 
@@ -58,7 +58,7 @@ public class TcpShareImageRunnable implements Runnable {
                                 lastQueueSize = 0;
                             }
                         }
-                        Thread.sleep(50);
+                        Thread.sleep(10);
                     }
                 } catch (IOException e) {
                     log.error("Can't connect. Socket connection Exception: {}", e.getMessage());

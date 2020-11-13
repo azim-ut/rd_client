@@ -11,7 +11,6 @@ import javafx.scene.layout.Pane;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.awt.event.ActionEvent;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.HashMap;
@@ -60,7 +59,7 @@ public class ScreenController {
                     if (packet != null) {
                         if (packet.getBytes().length > 0) {
                             images.put(packet.getPosition(), packet);
-                        } else if (packet.getPosition() > 0 && packet.getW() > 500) {
+                        } else {
                             images.remove(packet.getPosition());
                         }
                     }
@@ -97,12 +96,13 @@ public class ScreenController {
                 public void run() {
                     clearScene();
                     Iterator<Map.Entry<Integer, ScreenPacket>> it = images.entrySet().iterator();
+
                     while (it.hasNext()) {
                         ScreenPacket packet = it.next().getValue();
-                        if(packet.getPosition() == 0){
+                        if (packet.getPosition() == 0) {
                             log.info("BG");
                         }
-                        if(packet.getBytes().length > 0){
+                        if (packet.getBytes().length > 0) {
                             ByteArrayInputStream byteInputStream = new ByteArrayInputStream(packet.getBytes());
                             Image image = new Image(byteInputStream);
                             ImageView imageView = new ImageView(image);

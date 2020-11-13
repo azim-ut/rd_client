@@ -42,7 +42,7 @@ public class ScreenShowService {
                     }
 
                     if (!ctx.enableToConnect()) {
-                        Thread.sleep(50);
+                        Thread.sleep(10);
                         continue;
                     }
                     try (Socket socket = new Socket(ctx.getIp(), ctx.getPortShow());

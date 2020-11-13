@@ -14,7 +14,7 @@ public class Screen {
     private final int width;
     private final int height;
 
-    public List<Integer> croppedToSet(int w, int h) {
+    public List<Integer> cropToSet(int w, int h) {
         List<Integer> res = new LinkedList<>();
         for (int posY = 0; posY < this.height; posY = posY + h) {
             for (int posX = 0; posX < this.width; posX = posX + w) {
