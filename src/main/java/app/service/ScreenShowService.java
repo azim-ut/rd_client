@@ -42,7 +42,7 @@ public class ScreenShowService {
                     }
 
                     if (!ctx.enableToConnect()) {
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                         continue;
                     }
                     try (Socket socket = new Socket(ctx.getIp(), ctx.getPortShow());
@@ -61,7 +61,7 @@ public class ScreenShowService {
                                 command = packet.getCommand();
                                 ctx.getShow().add(packet);
                             }
-                            log.debug("ScreenShowService received: {}", packet);
+                            //log.debug("ScreenShowService received: {}", packet);
                         }
                     } catch (SocketException e) {
                         log.error("ScreenShowService: {}", e.getMessage());

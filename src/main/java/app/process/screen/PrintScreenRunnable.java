@@ -53,6 +53,7 @@ public class PrintScreenRunnable implements Runnable {
                             bgScreen = screenService.get();
                             saveBg(bgScreen);
                             samples.clear();
+                            ctx.clearSave();
 //                            samples.addAll(bgScreen.cropToSet(side, side));
                             //TODO start check from the begin, because of bg updated
                             bgUpdated = true;
@@ -76,7 +77,7 @@ public class PrintScreenRunnable implements Runnable {
                             .build()
                     );
                 }
-                Thread.sleep(10);
+                Thread.sleep(50);
             }
         } catch (InterruptedException e) {
             log.info("ScreenProcessor interrupted");
@@ -95,7 +96,7 @@ public class PrintScreenRunnable implements Runnable {
             if (!samples.containsKey(sampleIndex)){
                 samples.put(sampleIndex, bgScreen.getAreaSum(x, y, sideSize, sideSize));
             }
-                BufferedImage newCrop = img.getSubimage(x, y, sideSize, sideSize);
+            BufferedImage newCrop = img.getSubimage(x, y, sideSize, sideSize);
             Screen row = Screen.builder()
                     .bufferedImage(newCrop)
                     .width(sideSize)
@@ -153,7 +154,7 @@ public class PrintScreenRunnable implements Runnable {
             log.debug("Updated BG");
         }
         if (processedPackets.containsKey(packet.getId()) && processedPackets.get(packet.getId()) == packet.getBytes().length) {
-//            return;
+            return;
         }
         ctx.toSave().add(packet);
         processedPackets.put(packet.getId(), packet.getBytes().length);

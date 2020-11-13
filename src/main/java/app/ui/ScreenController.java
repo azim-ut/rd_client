@@ -65,7 +65,7 @@ public class ScreenController {
                     }
                 }
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     log.error("Images map update interrupted.");
                 }

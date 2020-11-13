@@ -152,7 +152,7 @@ public class Main {
         ImageView semiView = new ImageView(semiImg);
         face.setGraphic(semiView);
         try {
-            Thread.sleep(10);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             log.error("FaceState image change exception. ", e);
         }

@@ -53,6 +53,10 @@ public class ConnectionContext {
         return save;
     }
 
+    public void clearSave() {
+        save.clear();
+    }
+
     public Queue<ScreenPacket> toShow() {
         return show;
     }

@@ -23,7 +23,7 @@ public class ScreenSaveService {
                 startScreenGetThread();
                 startImageSendThread();
                 while (true) {
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 }
             } catch (InterruptedException e) {
                 log.error("ScreenService monitor: " + e.getMessage());

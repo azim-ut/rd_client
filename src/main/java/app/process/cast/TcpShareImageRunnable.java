@@ -31,7 +31,7 @@ public class TcpShareImageRunnable implements Runnable {
                 }
 
                 if (!ctx.enableToConnect()) {
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                     continue;
                 }
 
@@ -45,7 +45,7 @@ public class TcpShareImageRunnable implements Runnable {
                     while (true) {
                         ScreenPacket packet = ctx.toSave().peek();
                         if (packet != null) {
-//                            log.info("Send 1 of " + ctx.toSave().size() + " Image into. " + packet.toString());
+                            log.info("Send 1 of " + ctx.toSave().size() + " Image into. " + packet.toString());
                             outputStream.writeObject(packet);
                             outputStream.flush();
 //                        outputStream.flush();
@@ -58,7 +58,7 @@ public class TcpShareImageRunnable implements Runnable {
                                 lastQueueSize = 0;
                             }
                         }
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                     }
                 } catch (IOException e) {
                     log.error("Can't connect. Socket connection Exception: {}", e.getMessage());
