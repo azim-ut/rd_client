@@ -46,6 +46,7 @@ public class ScreenController {
         screenShowService = new ScreenShowService(context);
         defineUpdateHostThread();
         interfaceThread.start();
+        screen.getChildren().clear();
 
         new Thread(() -> {
             boolean started = false;
@@ -98,7 +99,8 @@ public class ScreenController {
                     Iterator<Map.Entry<Integer, ScreenPacket>> it = images.entrySet().iterator();
 
                     while (it.hasNext()) {
-                        ScreenPacket packet = it.next().getValue();
+                        Map.Entry<Integer, ScreenPacket> row = it.next();
+                        ScreenPacket packet = row.getValue();
                         if (packet.getPosition() == 0) {
                             log.info("BG");
                         }
@@ -106,6 +108,7 @@ public class ScreenController {
                             ByteArrayInputStream byteInputStream = new ByteArrayInputStream(packet.getBytes());
                             Image image = new Image(byteInputStream);
                             ImageView imageView = new ImageView(image);
+                            imageView.setCache(false);
                             imageView.setX(packet.getX());
                             imageView.setY(packet.getY());
 
@@ -127,6 +130,6 @@ public class ScreenController {
     }
 
     private void clearScene() {
-        screen.getChildren().removeAll(screen.getChildren());
+        screen.getChildren().clear();
     }
 }

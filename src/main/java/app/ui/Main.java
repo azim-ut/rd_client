@@ -67,6 +67,10 @@ public class Main {
     @FXML
     private Button watchBtnStop;
 
+    private Stage stage;
+
+    private ScreenController screenController;
+
 
     @FXML
     void initialize() {
@@ -88,23 +92,30 @@ public class Main {
         });
 
         watchBtnStart.setOnAction(event -> {
-            loader.setLocation(getClass().getResource("/screen.fxml"));
-            try {
-                loader.load();
-            } catch (IOException e) {
-                log.error("Screen UI open exception: {}", e.getMessage());
+            if (stage == null) {
+                loader.setLocation(getClass().getResource("/screen.fxml"));
+                try {
+                    loader.load();
+                } catch (IOException e) {
+                    log.error("Screen UI open exception: {}", e.getMessage());
+                }
+                Parent root = loader.getRoot();
+
+                stage = new Stage();
+                stage.setScene(new Scene(root));
+
+                screenController = loader.getController();
+                stage.setOnHidden(e -> {
+                    screenController.shutdown();
+                    stage.close();
+                });
+            }else{
+                screenController.initialize();
             }
-            Parent root = loader.getRoot();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            ScreenController screenController = loader.getController();
-            stage.setOnHidden(e -> {
-                screenController.shutdown();
-                stage.close();
-            });
+
             screenController.setContext(context);
             screenController.setCode(watchCode.getText());
-            stage.showAndWait();
+            stage.show();
         });
 
         hostUpdateThread.start();

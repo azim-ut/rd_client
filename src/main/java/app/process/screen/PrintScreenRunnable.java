@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +20,7 @@ public class PrintScreenRunnable implements Runnable {
     private final ConnectionContext ctx;
     private Map<Integer, Integer> samples = new HashMap<>();
     private final Map<String, Integer> processedPackets = new HashMap<>();
+    private int lastFrame = -1;
 
 
     public PrintScreenRunnable(ConnectionContext ctx) {
@@ -35,23 +35,24 @@ public class PrintScreenRunnable implements Runnable {
             int width = bgScreen.getWidth();
             int height = bgScreen.getHeight();
             int side = screenService.getMaxEnabledSquare(bgScreen);
+            int frame = 0;
 
-            saveBg(bgScreen);
+            saveBg(bgScreen, frame);
 //            samples = bgScreen.cropToSet(side, side);
 
             while (true) {
                 boolean breaked = false;
-                int sampleIndex = 1;
+                int position = 1;
                 int changes = 0;
                 boolean bgUpdated = false;
                 BufferedImage currentScreen = screenService.get().getBufferedImage();
                 for (int y = 0; y < height; y = y + side) {
                     for (int x = 0; x < width; x = x + side) {
-                        changes += processArea(bgScreen, currentScreen, x, y, sampleIndex, side);
+                        changes += processArea(bgScreen, currentScreen, x, y, frame, position, side);
 
                         if (changes > samples.size() / 2) {
                             bgScreen = screenService.get();
-                            saveBg(bgScreen);
+                            saveBg(bgScreen, frame);
                             samples.clear();
                             ctx.clearSave();
 //                            samples.addAll(bgScreen.cropToSet(side, side));
@@ -59,7 +60,7 @@ public class PrintScreenRunnable implements Runnable {
                             bgUpdated = true;
                             breaked = true;
                         }
-                        sampleIndex++;
+                        position++;
 
                         if (breaked) {
                             break;
@@ -71,11 +72,15 @@ public class PrintScreenRunnable implements Runnable {
                 }
                 if (bgUpdated) {
                     toPipe(ScreenPacket.builder()
-                            .id(defineId(ctx.getCode(), 0, 0, 0, 0, 0))
+                            .id(defineId(ctx.getCode(), frame, 0, 0, 0, 0, 0))
                             .bytes(new byte[0])
                             .command("ONLY_BG")
                             .build()
                     );
+                }
+                frame++;
+                if (frame > 100000) {
+                    frame = 0;
                 }
                 Thread.sleep(50);
             }
@@ -84,7 +89,7 @@ public class PrintScreenRunnable implements Runnable {
         }
     }
 
-    private int processArea(Screen bgScreen, BufferedImage img, int x, int y, int sampleIndex, int sideSize) {
+    private int processArea(Screen bgScreen, BufferedImage img, int x, int y, int frame, int position, int sideSize) {
         byte[] bytes = new byte[0];
         try {
             if (x >= img.getWidth() || (x + sideSize) > img.getWidth()) {
@@ -93,8 +98,8 @@ public class PrintScreenRunnable implements Runnable {
             if (y >= img.getHeight() || (y + sideSize) > img.getHeight()) {
                 return -1;
             }
-            if (!samples.containsKey(sampleIndex)){
-                samples.put(sampleIndex, bgScreen.getAreaSum(x, y, sideSize, sideSize));
+            if (!samples.containsKey(position)) {
+                samples.put(position, bgScreen.getAreaSum(x, y, sideSize, sideSize));
             }
             BufferedImage newCrop = img.getSubimage(x, y, sideSize, sideSize);
             Screen row = Screen.builder()
@@ -104,14 +109,14 @@ public class PrintScreenRunnable implements Runnable {
                     .build();
             int newBlockSize = row.getAreaSum(0, 0, sideSize, sideSize);
             if (newBlockSize >= 0) {
-                int sampleBlockSize = samples.get(sampleIndex);
+                int sampleBlockSize = samples.get(position);
                 if (newBlockSize != sampleBlockSize) {
                     bytes = getBytes(newCrop);
                 }
             }
 
             toPipe(ScreenPacket.builder()
-                    .id(defineId(ctx.getCode(), sampleIndex, x, y, row.getWidth(), row.getHeight()))
+                    .id(defineId(ctx.getCode(), frame, position, x, y, row.getWidth(), row.getHeight()))
                     .bytes(bytes)
                     .build()
             );
@@ -121,8 +126,10 @@ public class PrintScreenRunnable implements Runnable {
         return bytes.length > 0 ? 1 : 0;
     }
 
-    private String defineId(String code, int position, int x, int y, int w, int h) {
+    private String defineId(String code, int frame, int position, int x, int y, int w, int h) {
         return code +
+                "_" +
+                frame +
                 "_" +
                 position +
                 "_" +
@@ -135,23 +142,28 @@ public class PrintScreenRunnable implements Runnable {
                 h;
     }
 
-    private void saveBg(Screen screen) {
-        try {
-            String fileName = "bg.jpg";
-            toPipe(ScreenPacket.builder()
-                    .id(defineId(ctx.getCode(), 0, 0, 0, screen.getWidth(), screen.getHeight()))
-                    .bytes(getBytes(screen.getBufferedImage()))
-                    .build()
-            );
-            ImageIO.write(screen.getBufferedImage(), "jpg", new File("screen/" + fileName));
-        } catch (IOException e) {
-            log.error("SaveBg Exception " + e.getMessage(), e);
-        }
+    private void saveBg(Screen screen, int frame) {
+//        try {
+        String fileName = "bg.jpg";
+        toPipe(ScreenPacket.builder()
+                .id(defineId(ctx.getCode(), frame, 0, 0, 0, screen.getWidth(), screen.getHeight()))
+                .bytes(getBytes(screen.getBufferedImage()))
+                .build()
+        );
+//            ImageIO.write(screen.getBufferedImage(), "jpg", new File("screen/" + fileName));
+//        } catch (IOException e) {
+//            log.error("SaveBg Exception " + e.getMessage(), e);
+//        }
     }
 
     private void toPipe(ScreenPacket packet) {
         if (packet.getPosition() == 0) {
             log.debug("Updated BG");
+        }
+
+        if (lastFrame < packet.getFrame()) {
+            lastFrame = packet.getFrame();
+            ctx.clearSave();
         }
         if (processedPackets.containsKey(packet.getId()) && processedPackets.get(packet.getId()) == packet.getBytes().length) {
             return;
